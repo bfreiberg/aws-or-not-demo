@@ -1,0 +1,15 @@
+node_modules/
+cdk.out/
+dist/
+*.zip
+.env
+content/real.json
+content/questions.json
+content/questions.draft.json
+.superpowers/
+.DS_Store
+game/assets/
+admin/assets/
+test-results/
+playwright-report/
+infra/deploy-config.json

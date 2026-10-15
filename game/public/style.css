@@ -1,0 +1,123 @@
+:root { --bg: #161e2d; --panel: #232f3e; --accent: #ff9900; --text: #fff; --muted: #aab7b8; --good: #1d8102; --bad: #d13212; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: var(--accent); }
+main { flex: 1; width: min(960px, 100% - 2rem); margin: 0 auto; padding: 2rem 0; }
+.top { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: var(--panel); }
+.logo { font-weight: 800; font-size: 1.4rem; color: var(--text); text-decoration: none; }
+.logo span { color: var(--accent); }
+footer { text-align: center; color: var(--muted); padding: 1.5rem 1rem 2rem; font-size: .85rem; }
+footer p { margin: .25rem auto; max-width: 720px; }
+footer .disclaimer { font-size: .75rem; opacity: .8; }
+.muted { color: var(--muted); }
+.btn { display: inline-block; padding: .7rem 1.3rem; border-radius: 999px; border: 2px solid var(--accent); background: transparent; color: var(--accent); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--bg); }
+.btn:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+.hero { text-align: center; padding: 1.5rem 0 2.5rem; }
+.hero h1 { font-size: clamp(2.1rem, 6vw, 3.6rem); line-height: 1.1; margin: 0 0 2rem; }
+.hero h1 span { color: var(--accent); }
+/* How-to-play steps: three cards, stacked on narrow screens. */
+.steps { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; text-align: left; }
+.step { position: relative; padding: 1.25rem 1.25rem 1.1rem; border-radius: 1rem; background: linear-gradient(160deg, #2a3647, var(--panel) 60%); border: 1px solid rgba(255, 255, 255, .06); box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+.step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.step-num { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--accent); color: var(--bg); font-weight: 800; }
+.step-icon { color: var(--accent); opacity: .9; }
+.step h2 { font-size: 1.15rem; margin: 0 0 .35rem; }
+.step p { margin: 0; color: var(--muted); line-height: 1.45; }
+.btn.mode { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.btn.mode small { font-size: .8rem; font-weight: 600; opacity: .8; margin-top: .2rem; }
+.panel { padding: 1.25rem; border-radius: 1rem; background: var(--panel); border: 1px solid rgba(255, 255, 255, .06); }
+.panel h2 { margin: 0 0 .75rem; font-size: 1.2rem; }
+.panel .board a:hover { background: rgba(255, 255, 255, .05); }
+.modes, .share { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin: 1.5rem 0; }
+.boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+.board { list-style: none; counter-reset: pos; padding: 0; margin: 0; }
+.board li { counter-increment: pos; }
+.board a { display: grid; grid-template-columns: 2rem 1fr auto; grid-template-areas: "pos who pts" "pos rank pts"; gap: 0 .75rem; padding: .6rem .8rem; border-radius: .6rem; color: var(--text); text-decoration: none; }
+.board a::before { content: counter(pos); grid-area: pos; color: var(--muted); font-weight: 700; align-self: center; }
+.board a:hover { background: var(--panel); }
+.board .who { grid-area: who; font-weight: 700; }
+.board .rank { grid-area: rank; color: var(--muted); font-size: .85rem; }
+.board .pts { grid-area: pts; align-self: center; font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+#game { text-align: center; }
+.hud { display: flex; flex-wrap: nowrap; align-items: baseline; justify-content: center; gap: 1.25rem; color: var(--muted); white-space: nowrap; }
+.hud > * { flex: none; }
+/* The rank is the only HUD item allowed to shrink: on narrow screens it truncates instead of wrapping the line. */
+.hud .rank-now { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text); font-weight: 700; }
+.hud b, .strikes { color: var(--text); }
+.strikes { letter-spacing: .3em; color: var(--bad); }
+/* Two lines are always reserved, so a long name never pushes the buttons down. */
+.name { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.15; min-height: 2.3em; margin: 2rem 0 1rem; display: flex; align-items: center; justify-content: center; }
+.timer { position: relative; height: 1.6rem; margin: 1.5rem auto 0; max-width: 480px; background: var(--panel); border-radius: 999px; overflow: hidden; }
+.timer-bar { height: 100%; width: 100%; background: var(--accent); transition: width .1s linear; }
+.timer-text { position: absolute; inset: 0; font-weight: 700; line-height: 1.6rem; color: var(--bg); }
+.feedback { margin: 1.5rem auto; max-width: 560px; padding: 1.5rem; background: var(--panel); border-radius: 1rem; }
+.verdict { font-size: 1.4rem; font-weight: 800; margin: 0 0 .5rem; }
+.verdict.good { color: #6fd36f; }
+.verdict.bad { color: #ff7b6b; }
+.error { color: #ff7b6b; }
+.result { text-align: center; }
+.result .card {
+  display: block; width: 100%; max-width: 900px; height: auto; margin: 0 auto; border-radius: 1rem;
+  border: 2px solid rgba(255, 153, 0, .55);
+  box-shadow: 0 0 0 6px rgba(255, 153, 0, .08), 0 0 40px rgba(255, 153, 0, .28), 0 24px 60px rgba(0, 0, 0, .55);
+  animation: card-in .7s cubic-bezier(.2, .9, .3, 1.1) both, card-glow 2.4s .5s ease-out both;
+}
+@keyframes card-in { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes card-glow {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(255, 153, 0, .08), 0 0 40px rgba(255, 153, 0, .28), 0 24px 60px rgba(0, 0, 0, .55); }
+  35% { box-shadow: 0 0 0 8px rgba(255, 153, 0, .16), 0 0 70px rgba(255, 153, 0, .55), 0 24px 60px rgba(0, 0, 0, .55); }
+}
+@media (prefers-reduced-motion: reduce) { .result .card { animation: none; } }
+.result .cta { display: inline-block; margin: 1.25rem 0 .25rem; }
+.roast { font-size: 1.3rem; font-style: italic; }
+[hidden] { display: none !important; }
+
+#game { position: relative; }
+
+/* One fixed-height slot for Real / Made up and Next, so the buttons never move under the cursor. */
+.actions { display: grid; place-items: center; min-height: 4.5rem; margin: 1.5rem 0; }
+.choices { display: flex; gap: .75rem; justify-content: center; }
+.btn.big { min-width: 10rem; padding: 1rem 2rem; font-size: 1.25rem; }
+.next.btn.big { min-width: 16rem; }
+.feedback { margin-top: 0; }
+
+/* Promotion badge: floats over the HUD, out of the layout flow, and never takes clicks. */
+.promo {
+  position: absolute; top: -.6rem; left: 50%; z-index: 10; margin: 0; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: .1rem; padding: .5rem 1.6rem; border-radius: 1.2rem; max-width: calc(100% - 1rem); width: max-content; text-align: center; line-height: 1.2;
+  font-weight: 800; font-size: 1.15rem; color: var(--bg);
+  background: linear-gradient(110deg, #ff9900 0%, #ffb84d 40%, #fff3d6 50%, #ffb84d 60%, #ff9900 100%);
+  background-size: 250% 100%;
+  box-shadow: 0 0 0 3px rgba(255, 153, 0, .35), 0 8px 30px rgba(255, 153, 0, .55);
+  opacity: 0; transform: translate(-50%, 0);
+}
+.promo small { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.promo.show { animation: promo-pop 2.6s cubic-bezier(.2, .9, .3, 1.3) forwards, promo-shine 1.2s .25s ease-in-out 2; }
+@keyframes promo-pop {
+  0%   { opacity: 0; transform: translate(-50%, 14px) scale(.5); }
+  12%  { opacity: 1; transform: translate(-50%, 0) scale(1.12); }
+  22%  { transform: translate(-50%, 0) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -16px) scale(.95); }
+}
+@keyframes promo-shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.rank-now.bump { animation: rank-bump .9s ease-out; }
+@keyframes rank-bump {
+  0%, 100% { color: var(--text); text-shadow: none; }
+  30% { color: var(--accent); text-shadow: 0 0 14px rgba(255, 153, 0, .9); }
+}
+
+@media (max-width: 480px) {
+  .hud { gap: .8rem; font-size: .9rem; }
+  .btn.big { min-width: 0; flex: 1; padding: .9rem 1rem; }
+  .choices { width: 100%; }
+  .next.btn.big { width: 100%; min-width: 0; }
+  .promo { font-size: 1rem; padding: .45rem 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo.show { animation: promo-fade 2.6s linear forwards; }
+  .rank-now.bump { animation: none; }
+  @keyframes promo-fade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+}

@@ -1,0 +1,11 @@
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: #f2f3f3; color: #16191f; }
+header { display: flex; justify-content: space-between; align-items: center; padding: .8rem 1.5rem; background: #232f3e; color: #fff; }
+header nav { display: flex; gap: 1rem; align-items: center; }
+header a { color: #ff9900; }
+main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+table { border-collapse: collapse; width: 100%; background: #fff; margin-bottom: 1.5rem; }
+th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid #e9ebed; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; }
+.muted { color: #5f6b7a; }
+button { cursor: pointer; }
+input { width: 5rem; margin: 0 .5rem; }

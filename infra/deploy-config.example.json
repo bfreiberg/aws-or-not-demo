@@ -1,0 +1,7 @@
+{
+  "domain": "aws-or-not.example.com",
+  "hostedZoneId": "Z0123456789EXAMPLE",
+  "hostedZoneName": "example.com",
+  "alertEmail": "alerts@example.com",
+  "budgetUsd": 20
+}

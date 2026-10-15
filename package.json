@@ -1,0 +1,39 @@
+{
+  "name": "aws-or-not",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "assets": "node scripts/assets.js",
+    "test": "node scripts/assets.js && vitest run",
+    "test:e2e": "node scripts/assets.js && playwright test",
+    "build": "node scripts/build.js",
+    "dev:game": "node scripts/dev-game.js",
+    "dev:admin": "node scripts/dev-admin.js",
+    "generate": "node content/generate.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1151.0",
+    "@aws-sdk/client-dynamodb": "^3.1151.0",
+    "@aws-sdk/client-secrets-manager": "^3.1151.0",
+    "@aws-sdk/client-ssm": "^3.1151.0",
+    "@aws-sdk/lib-dynamodb": "^3.1151.0",
+    "@fontsource/inter": "^5.3.0",
+    "@hono/node-server": "^2.1.5",
+    "@hono/zod-validator": "^0.9.1",
+    "@resvg/resvg-wasm": "^2.6.2",
+    "aws-jwt-verify": "^5.2.1",
+    "hono": "^4.13.13",
+    "nanoid": "^6.0.2",
+    "satori": "^0.56.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "esbuild": "^0.28.2",
+    "jose": "^6.2.12",
+    "vitest": "^5.0.4"
+  }
+}
