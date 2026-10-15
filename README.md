@@ -4,6 +4,8 @@ A quiz in which players decide whether a name is a real AWS service or a made-up
 sample for **AWS Lambda Web Functions**: two Hono HTTP servers that listen on a port, deployed as web
 functions without handler adapters.
 
+**Play:** https://aws-or-not.freiberg.cloud
+
 ![A quiz run: questions, a promotion, and the result card](docs/demo.gif)
 
 ## How it works
