@@ -35,6 +35,8 @@ export class AppStack extends Stack {
         indexName: 'GSI1',
         partitionKey: { name: 'GSI1PK', type: dynamodb.AttributeType.STRING },
         sortKey: { name: 'GSI1SK', type: dynamodb.AttributeType.STRING },
+        maxReadRequestUnits: 400,
+        maxWriteRequestUnits: 200,
       }],
     });
     const indexArn = `${table.tableArn}/index/GSI1`;

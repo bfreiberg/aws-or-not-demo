@@ -29,7 +29,7 @@ export class GuardStack extends Stack {
     });
 
     // Allow budgets.amazonaws.com to publish, scoped to this account.
-    alertTopic.addToResourcePolicy(new iam.PolicyStatement({
+    const budgetPublishPermission = alertTopic.addToResourcePolicy(new iam.PolicyStatement({
       sid: 'AllowBudgetsPublish',
       effect: iam.Effect.ALLOW,
       principals: [new iam.ServicePrincipal('budgets.amazonaws.com')],
@@ -77,10 +77,10 @@ export class GuardStack extends Stack {
     }));
 
     // Subscribe the kill-switch to the SNS topic.
-    alertTopic.addSubscription(new snsSubscriptions.LambdaSubscription(killSwitch));
+    const killSwitchSubscription = alertTopic.addSubscription(new snsSubscriptions.LambdaSubscription(killSwitch));
 
     // ── Budget ────────────────────────────────────────────────────────────────
-    new budgets.CfnBudget(this, 'MonthlyBudget', {
+    const monthlyBudget = new budgets.CfnBudget(this, 'MonthlyBudget', {
       budget: {
         budgetName: 'aws-or-not-monthly',
         budgetType: 'COST',
@@ -145,5 +145,8 @@ export class GuardStack extends Stack {
         },
       ],
     });
+    // Budget creation validates SNS access and can immediately send its first alert.
+    // The function dependency includes its SNS invoke permission and execution policies.
+    monthlyBudget.node.addDependency(budgetPublishPermission.policyDependable, killSwitch, killSwitchSubscription);
   }
 }

@@ -60,6 +60,16 @@ describe('GuardStack – budget', () => {
     expect(n100a.Subscribers.some((s) => s.SubscriptionType === 'EMAIL')).toBe(true);
     expect(n100a.Subscribers.some((s) => s.SubscriptionType === 'SNS')).toBe(true);
   });
+
+  it('waits for the SNS publish policy, kill-switch subscription and invoke permission before creating the budget', () => {
+    const [budget] = Object.values(t.findResources('AWS::Budgets::Budget'));
+    const [topicPolicyId] = Object.keys(t.findResources('AWS::SNS::TopicPolicy'));
+    const [subscriptionId] = Object.entries(t.findResources('AWS::SNS::Subscription'))
+      .find(([, resource]) => resource.Properties.Protocol === 'lambda');
+    const [permissionId] = Object.entries(t.findResources('AWS::Lambda::Permission'))
+      .find(([, resource]) => resource.Properties.Principal === 'sns.amazonaws.com');
+    expect(budget.DependsOn).toEqual(expect.arrayContaining([topicPolicyId, subscriptionId, permissionId]));
+  });
 });
 
 describe('GuardStack – SNS topic policy', () => {

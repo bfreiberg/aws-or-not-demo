@@ -14,6 +14,8 @@ functions without handler adapters.
   without end), and three wrong answers end the run. Hard mode adds a per-question timer.
 - The server grades every answer. The browser never receives the answer before submitting; run state is
   updated with optimistic locking.
+- Question statistics update in the background, and the answer percentage loads separately. These
+  analytics are approximate: failed, saturated, or interrupted updates can be lost without affecting gameplay.
 - Each result has a page (`/r/:id`) with Open Graph tags and a share card rendered on demand
   (`/og/:id.png`, satori + resvg-wasm).
 - An admin app (Cognito, PKCE, TOTP MFA, `admins` group) shows usage statistics, sets the Hard-mode
@@ -150,7 +152,7 @@ aws pricing-plan-manager create-subscription --region us-east-1 --profile <profi
 |---|---|
 | Endpoint throttle | 100 requests/s per endpoint |
 | Environments | Game: at most 3; admin: 2 |
-| DynamoDB | On-demand with a maximum of 400 read and 200 write units |
+| DynamoDB | On-demand; base table and leaderboard index each capped at 400 read and 200 write units |
 | WAF | 500 requests per 5 minutes per IP |
 | Logs | Platform logs at `WARN`, 30-day retention |
 | Budget | `budgetUsd` per month, limited to the services the app uses |

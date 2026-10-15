@@ -136,8 +136,8 @@ export class EdgeStack extends Stack {
     });
 
     const target = route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution));
-    new route53.ARecord(this, 'AliasA', { zone, recordName: 'aws-or-not', target });
-    new route53.AaaaRecord(this, 'AliasAaaa', { zone, recordName: 'aws-or-not', target });
+    new route53.ARecord(this, 'AliasA', { zone, recordName: domain, target });
+    new route53.AaaaRecord(this, 'AliasAaaa', { zone, recordName: domain, target });
 
     new CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
     new CfnOutput(this, 'DistributionDomainName', { value: distribution.distributionDomainName });

@@ -1,4 +1,4 @@
-
+import { loadQuestionStats } from './question-stats.js';
 const root = document.getElementById('game');
 const mode = root.dataset.mode;
 const $ = (sel) => root.querySelector(sel);
@@ -108,12 +108,14 @@ async function answer(guess) {
     $('.verdict').textContent = d.timedOut ? `Time's up! It's ${truth}.` : `${d.correct ? 'Correct' : 'Wrong'}: it's ${truth}.`;
     $('.verdict').className = `verdict ${d.correct ? 'good' : 'bad'}`;
     $('.explanation').textContent = d.explanation;
-    $('.pct').textContent = `${d.pctCorrect}% of players got this right.`;
+    $('.pct').hidden = true;
     $('.feedback').hidden = false;
     $('.next').hidden = false;
     $('.next').textContent = d.gameOver ? 'See result' : 'Next';
     $('.next').onclick = d.gameOver ? () => showOver(d) : next;
     $('.next').focus();
+    const answeredQid = question.qid;
+    void loadQuestionStats(answeredQid, $('.pct'), () => question.qid === answeredQid && !$('.feedback').hidden);
   } catch {
     fail();
   } finally {

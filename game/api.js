@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { startRun, gradeAnswer, nextQuestion } from '../shared/engine.js';
 import { rankForTier } from '../shared/ranks.js';
 import { ConflictError } from '../shared/db/store.js';
-import { clientIp, dayOf } from '../shared/http.js';
+import { clientIp } from '../shared/http.js';
+import { createQuestionStatsRecorder } from './question-stats.js';
 
 export const LEADERBOARD_DAILY_CAP = 20;
 export const RESULT_ID = /^[A-Za-z0-9_-]{8}$/;
@@ -17,6 +18,7 @@ const runParam = zValidator('param', z.object({ id: z.string().regex(/^[A-Za-z0-
 export function apiRoutes({ store, questions, config, now, rng, newRunId, newResultId, hashIp, generateHandle }) {
   const byId = new Map(questions.map((q) => [q.id, q]));
   const api = new Hono();
+  const recordStats = createQuestionStatsRecorder(store);
 
   const publicQuestion = (run) => ({
     qid: run.currentQid,
@@ -32,13 +34,8 @@ export function apiRoutes({ store, questions, config, now, rng, newRunId, newRes
     const payload = { gameOver: true, resultId, rank: rankForTier(run.tier), score: run.score, strikes: run.strikes };
     if (existing) return payload;
 
-    const day = dayOf(t);
-    let count;
-    if (run.ipHash != null) {
-      count = await store.incrementRate(run.ipHash, day, t);
-    } else {
+    if (run.ipHash == null) {
       console.warn(JSON.stringify({ level: 'warn', message: 'no client ip; leaderboard cap skipped' }));
-      count = 0;
     }
 
     const result = {
@@ -57,12 +54,11 @@ export function apiRoutes({ store, questions, config, now, rng, newRunId, newRes
       createdAt: t,
     };
     try {
-      await store.putResult(result, { onLeaderboard: count <= LEADERBOARD_DAILY_CAP });
+      await store.finalizeResult(result, { ipHash: run.ipHash, dailyCap: LEADERBOARD_DAILY_CAP });
     } catch (err) {
       if (err instanceof ConflictError) return payload;
       throw err;
     }
-    await store.recordGame({ day, mode: run.mode, score: run.score, tier: run.tier });
     return payload;
   }
 
@@ -82,6 +78,19 @@ export function apiRoutes({ store, questions, config, now, rng, newRunId, newRes
       throw err;
     }
   }
+
+  api.get('/questions/:qid/stats', async (c) => {
+    const qid = c.req.param('qid');
+    if (!byId.has(qid)) return c.json({ error: 'not_found' }, 404);
+    try {
+      const stats = await store.getQuestionStats([qid], { abortSignal: AbortSignal.timeout(1000) });
+      const stat = stats.get(qid);
+      return c.json({ pctCorrect: stat?.seen > 0 ? Math.round((100 * stat.correct) / stat.seen) : null });
+    } catch (err) {
+      console.warn(JSON.stringify({ level: 'warn', message: 'question stats read failed', qid, error: err.message }));
+      return c.json({ pctCorrect: null });
+    }
+  });
 
   api.post('/runs', zValidator('json', z.object({ mode: z.enum(['normal', 'hard']) }), fail), async (c) => {
     const { mode } = c.req.valid('json');
@@ -124,13 +133,12 @@ export function apiRoutes({ store, questions, config, now, rng, newRunId, newRes
       const { saved, response: conflict } = await save(graded.run, run.version, c);
       if (conflict) return conflict;
 
-      const stat = await store.recordAnswerStat(question.id, graded.correct);
+      recordStats(question.id, graded.correct);
       const feedback = {
         correct: graded.correct,
         timedOut: graded.timedOut,
         real: question.real,
         explanation: question.explanation,
-        pctCorrect: Math.round((100 * stat.correct) / stat.seen),
         score: saved.score,
         strikes: saved.strikes,
       };

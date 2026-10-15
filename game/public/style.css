@@ -16,8 +16,9 @@ footer .disclaimer { font-size: .75rem; opacity: .8; }
 .hero { text-align: center; padding: 1.5rem 0 2.5rem; }
 .hero h1 { font-size: clamp(2.1rem, 6vw, 3.6rem); line-height: 1.1; margin: 0 0 2rem; }
 .hero h1 span { color: var(--accent); }
-/* How-to-play steps: three cards, stacked on narrow screens. */
-.steps { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; text-align: left; }
+/* How-to-play steps: three cards in a row, or stacked (never 2 + 1). */
+.steps { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; grid-template-columns: 1fr; gap: 1rem; text-align: left; }
+@media (min-width: 720px) { .steps { grid-template-columns: repeat(3, 1fr); } }
 .step { position: relative; padding: 1.25rem 1.25rem 1.1rem; border-radius: 1rem; background: linear-gradient(160deg, #2a3647, var(--panel) 60%); border: 1px solid rgba(255, 255, 255, .06); box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
 .step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
 .step-num { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--accent); color: var(--bg); font-weight: 800; }

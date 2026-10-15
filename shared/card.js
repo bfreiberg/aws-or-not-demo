@@ -101,6 +101,15 @@ export async function renderCard(result, { assetDir, siteHost, cta = true }) {
   ].filter(Boolean));
 
   const svg = await satori(tree, { width: 1200, height: 630, fonts });
-  const png = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng();
-  return Buffer.from(png);
+  const renderer = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } });
+  try {
+    const image = renderer.render();
+    try {
+      return Buffer.from(image.asPng());
+    } finally {
+      image.free();
+    }
+  } finally {
+    renderer.free();
+  }
 }

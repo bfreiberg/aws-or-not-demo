@@ -180,6 +180,21 @@ describe('endpoint limits and log groups', () => {
     );
   });
 
+  it('caps the leaderboard index at 400 read and 200 write units independently of the table', () => {
+    t.hasResourceProperties('AWS::DynamoDB::GlobalTable', {
+      GlobalSecondaryIndexes: Match.arrayWith([Match.objectLike({
+        IndexName: 'GSI1',
+        WriteOnDemandThroughputSettings: { MaxWriteRequestUnits: 200 },
+      })]),
+      Replicas: Match.arrayWith([Match.objectLike({
+        GlobalSecondaryIndexes: Match.arrayWith([{
+          IndexName: 'GSI1',
+          ReadOnDemandThroughputSettings: { MaxReadRequestUnits: 400 },
+        }]),
+      })]),
+    });
+  });
+
   it('sets INFO application log level and WARN system log level on revisions', () => {
     t.hasResourceProperties('AWS::Lambda::WebFunctionRevision', {
       ServiceConfig: {

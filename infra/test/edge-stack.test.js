@@ -171,6 +171,31 @@ describe('EdgeStack – DNS and outputs', () => {
     }
   });
 
+  it.each(['quiz.example.com', 'quiz.games.example.com'])('uses the configured hostname %s for both DNS records', (domain) => {
+    const custom = Template.fromStack(new EdgeStack(new App(), 'CustomDomain', {
+      env,
+      domain,
+      hostedZoneId: 'Z0123456789EXAMPLE',
+      hostedZoneName: 'example.com',
+      gameDomain: 'game.example.net',
+      adminDomain: 'admin.example.net',
+    }));
+    const [distributionId] = Object.keys(custom.findResources('AWS::CloudFront::Distribution'));
+    custom.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: { Aliases: [domain] },
+    });
+    for (const Type of ['A', 'AAAA']) {
+      custom.hasResourceProperties('AWS::Route53::RecordSet', {
+        Type,
+        Name: `${domain}.`,
+        AliasTarget: {
+          DNSName: { 'Fn::GetAtt': [distributionId, 'DomainName'] },
+          HostedZoneId: Match.anyValue(),
+        },
+      });
+    }
+  });
+
   it('outputs distribution ID, domain name and secret ARN', () => {
     for (const k of ['DistributionId', 'DistributionDomainName', 'OriginSecretArn']) t.hasOutput(k, {});
   });

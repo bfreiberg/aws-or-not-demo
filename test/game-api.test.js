@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import { createTestStore } from './helpers/dynamo.js';
 import { createClock, counterId } from './helpers/clock.js';
 import { questions, byId } from './fixtures/questions.js';
@@ -58,7 +59,7 @@ async function loseRun(headers) {
   let body;
   for (let i = 0; i < 3; i++) {
     body = await (await answer(run.runId, qid, false)).json();
-    if (!body.gameOver) qid = (await (await next(run.runId)).json()).question.qid;
+    if (i < 2 && !body.gameOver) qid = (await (await next(run.runId)).json()).question.qid;
   }
   return { run, body };
 }
@@ -102,13 +103,13 @@ describe('malformed JSON bodies', () => {
 });
 
 describe('POST /api/runs/:id/answer and /next', () => {
-  it('grades, reports stats, then issues the next question', async () => {
+  it('grades independently of statistics, then issues the next question', async () => {
     const run = await start();
     const res = await answer(run.runId, run.question.qid, true);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toMatchObject({ correct: true, timedOut: false, real: true, explanation: 'Explanation 1.0', score: 1, strikes: 0 });
-    expect(body.pctCorrect).toBeGreaterThanOrEqual(0);
+    expect(body.pctCorrect).toBeUndefined();
     expect(body.question).toBeUndefined();
 
     const nextRes = await next(run.runId);
@@ -186,13 +187,16 @@ describe('POST /api/runs/:id/answer and /next', () => {
     expect(board.map((r) => r.id)).toContain(body.resultId);
   });
 
-  it('recovers a half-finished finalize: putResult throws once, then /next returns 200 with the same resultId (I5-a)', async () => {
+  it('recovers a failed finalization with the same resultId and one set of statistics', async () => {
+    for (let i = 0; i < LEADERBOARD_DAILY_CAP - 1; i++) {
+      await ctx.store.incrementRate('h:9.9.9.4', dayOf(clock.now()), clock.now());
+    }
     let thrown = false;
     const wrappedStore = {
       ...ctx.store,
-      putResult: async (...args) => {
+      finalizeResult: async (...args) => {
         if (!thrown) { thrown = true; throw new Error('boom'); }
-        return ctx.store.putResult(...args);
+        return ctx.store.finalizeResult(...args);
       },
     };
     const wrappedApp = createGameApp({
@@ -220,7 +224,7 @@ describe('POST /api/runs/:id/answer and /next', () => {
     expect(startRes.status).toBe(201);
     const run = await startRes.json();
 
-    // Answer wrong 3 times; putResult throws on the 3rd strike
+    // Answer wrong 3 times; finalization throws on the 3rd strike.
     let qid = run.question.qid;
     let thirdRes;
     for (let i = 0; i < 3; i++) {
@@ -236,10 +240,10 @@ describe('POST /api/runs/:id/answer and /next', () => {
         thirdRes = res;
       }
     }
-    // 3rd-strike answer returns 500 because putResult threw
+    // The accepted third strike remains on the run, but finalization has not committed.
     expect(thirdRes.status).toBe(500);
 
-    // /next on the same run should recover: getResult=null => finalize runs again => putResult succeeds
+    // /next retries the transaction using the resultId already persisted on the run.
     const daysBefore = await ctx.store.getDays(['ALL'], ['normal']);
     const gamesBefore = daysBefore[0]?.games ?? 0;
 
@@ -259,6 +263,37 @@ describe('POST /api/runs/:id/answer and /next', () => {
     // finalize ran exactly once (failure + recovery = 1 game recorded, not 2)
     const daysAfter = await ctx.store.getDays(['ALL'], ['normal']);
     expect((daysAfter[0]?.games ?? 0) - gamesBefore).toBe(1);
+    const { Item: quota } = await ctx.doc.send(new GetCommand({
+      TableName: ctx.tableName, Key: { PK: `RATE#h:9.9.9.4#${dayOf(clock.now())}`, SK: 'LB' }, ConsistentRead: true,
+    }));
+    expect(quota.count).toBe(LEADERBOARD_DAILY_CAP);
+    expect((await ctx.store.getLeaderboard('normal', 50)).map((r) => r.id)).toContain(recoveryBody.resultId);
+  });
+
+  it('recovers a lost response after finalization committed without duplicating statistics or quota', async () => {
+    const finalize = ctx.store.finalizeResult;
+    const spy = vi.spyOn(ctx.store, 'finalizeResult').mockImplementationOnce(async (...args) => {
+      await finalize(...args);
+      throw new Error('Connection closed after commit');
+    });
+    try {
+      const before = await ctx.store.getDays(['ALL'], ['normal']);
+      const { run, body } = await loseRun({ 'x-forwarded-for': '9.9.9.6' });
+      expect(body).toEqual({ error: 'internal' });
+      const saved = await ctx.store.getRun(run.runId);
+      const recovery = await next(run.runId);
+      expect(recovery.status).toBe(200);
+      expect(await recovery.json()).toMatchObject({ gameOver: true, resultId: saved.resultId });
+      expect(spy).toHaveBeenCalledTimes(1);
+      const after = await ctx.store.getDays(['ALL'], ['normal']);
+      expect(after[0].games - (before[0]?.games ?? 0)).toBe(1);
+      const { Item: quota } = await ctx.doc.send(new GetCommand({
+        TableName: ctx.tableName, Key: { PK: `RATE#h:9.9.9.6#${dayOf(clock.now())}`, SK: 'LB' }, ConsistentRead: true,
+      }));
+      expect(quota.count).toBe(1);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('/next twice after game over does not double-count DAY#ALL games (I5-c)', async () => {
