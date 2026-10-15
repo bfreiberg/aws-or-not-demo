@@ -184,6 +184,10 @@ retained and must be deleted manually:
 - Log groups `/aws/lambda/web/aws-or-not-game.local` and `/aws/lambda/web/aws-or-not-admin.local`, which
   the platform creates outside the stack.
 
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
+
 ## Disclaimer
 
 AWS or Not? is an independent project. It is not affiliated with, endorsed by or sponsored by Amazon Web
