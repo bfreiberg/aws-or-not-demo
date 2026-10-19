@@ -4,8 +4,6 @@ A quiz in which players decide whether a name is a real AWS service or a made-up
 sample for **AWS Lambda Web Functions**: two Hono HTTP servers that listen on a port, deployed as web
 functions without handler adapters.
 
-**Play:** https://aws-or-not.freiberg.cloud
-
 ![A quiz run: questions, a promotion, and the result card](docs/demo.gif)
 
 ## How it works
@@ -103,14 +101,6 @@ make e2e        # Playwright
    `REGION` defaults to `us-east-1` and is not taken from `AWS_REGION`. `make deploy` runs the tests,
    then `scripts/deploy.sh` builds both ZIPs, uploads them under content-hash keys, and deploys
    `AwsOrNotCode`, `AwsOrNotApp`, `AwsOrNotEdge` and `AwsOrNotGuard`.
-
-   The hosted `aws-or-not.freiberg.cloud` instance uses `eu-central-1` for
-   `AwsOrNotCode`, `AwsOrNotApp`, and `AwsOrNotGuard`, and `us-east-1` for
-   `AwsOrNotEdge`. Deploy that instance with:
-
-   ```bash
-   make deploy PROFILE=personal REGION=eu-central-1
-   ```
 
    The deployment script keeps the edge stack in `us-east-1` regardless of `REGION`.
 
