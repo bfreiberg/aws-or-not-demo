@@ -104,6 +104,16 @@ make e2e        # Playwright
    then `scripts/deploy.sh` builds both ZIPs, uploads them under content-hash keys, and deploys
    `AwsOrNotCode`, `AwsOrNotApp`, `AwsOrNotEdge` and `AwsOrNotGuard`.
 
+   The hosted `aws-or-not.freiberg.cloud` instance uses `eu-central-1` for
+   `AwsOrNotCode`, `AwsOrNotApp`, and `AwsOrNotGuard`, and `us-east-1` for
+   `AwsOrNotEdge`. Deploy that instance with:
+
+   ```bash
+   make deploy PROFILE=personal REGION=eu-central-1
+   ```
+
+   The deployment script keeps the edge stack in `us-east-1` regardless of `REGION`.
+
 4. Create an admin user:
 
    ```bash

@@ -47,6 +47,7 @@ test('normal run to game over produces a shareable result page', async ({ page }
   const image = await page.request.get(og);
   expect(image.headers()['content-type']).toBe('image/png');
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+  await page.screenshot({ path: test.info().outputPath('arcade-result.png'), fullPage: true, animations: 'disabled' });
 });
 
 test('hard mode timeout costs a strike', async ({ page }) => {
@@ -54,6 +55,8 @@ test('hard mode timeout costs a strike', async ({ page }) => {
   await expect(page.locator('.timer')).toBeVisible();
   await expect(page.locator('.verdict')).toContainText("Time's up", { timeout: 10_000 });
   await expect(page.locator('.strikes')).toHaveText('✖○○');
+  await expect(page.locator('.strikes')).toHaveAttribute('aria-label', '1 of 3 strikes');
+  await expect(page.locator('.timer')).toHaveClass(/urgent/);
 });
 
 test('copy image falls back to a download without ClipboardItem', async ({ page }) => {
@@ -96,8 +99,11 @@ test('server 500 on /answer triggers recovery via /next, no error screen shown',
 
 test('Next appears where the choices were, and promotion does not move the buttons', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 760 });
+  await page.goto('/');
+  await page.screenshot({ path: test.info().outputPath('arcade-home-mobile.png'), fullPage: true, animations: 'disabled' });
   await page.goto('/play?mode=normal');
   await expect(page.locator('#game .name')).not.toHaveText('Loading…');
+  await page.screenshot({ path: test.info().outputPath('arcade-game-mobile.png'), fullPage: true, animations: 'disabled' });
   const choicesTop = (await page.locator('[data-guess="real"]').boundingBox()).y;
   for (let i = 0; i < 4; i++) {
     await answer(page, true);
@@ -112,4 +118,22 @@ test('Next appears where the choices were, and promotion does not move the butto
   const hud = await page.locator('.hud').boundingBox();
   const rank = await page.locator('.hud .rank-now').boundingBox();
   expect(rank.height).toBeLessThan(hud.height + 1); // single line, no wrap
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: test.info().outputPath('arcade-promotion-mobile.png'), fullPage: true, animations: 'disabled' });
+});
+
+test('reduced motion still clears the promotion without moving the controls', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/play?mode=normal');
+  await expect(page.locator('#game .name')).not.toHaveText('Loading…');
+  for (let i = 0; i < 4; i++) {
+    await answer(page, true);
+    await page.click('.next');
+    await expect(page.locator('.feedback')).toBeHidden();
+  }
+  await expect(page.locator('.promo')).toBeVisible();
+  const top = (await page.locator('[data-guess="real"]').boundingBox()).y;
+  expect(await page.locator('.promo').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
+  await expect(page.locator('.promo')).toBeHidden({ timeout: 3500 });
+  expect((await page.locator('[data-guess="real"]').boundingBox()).y).toBe(top);
 });

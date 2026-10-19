@@ -24,6 +24,12 @@ export async function copyAssets() {
   await cp(new URL('@resvg/resvg-wasm/index_bg.wasm', modules), new URL('resvg.wasm', gameAssets));
   await cp(new URL('@fontsource/inter/files/inter-latin-400-normal.woff', modules), new URL('inter-400.woff', gameAssets));
   await cp(new URL('@fontsource/inter/files/inter-latin-700-normal.woff', modules), new URL('inter-700.woff', gameAssets));
+  const browserFonts = new URL('game/public/fonts/', root);
+  await mkdir(browserFonts, { recursive: true });
+  await Promise.all([400, 500, 600, 700, 800].map((weight) => cp(
+    new URL(`@fontsource/inter/files/inter-latin-${weight}-normal.woff2`, modules),
+    new URL(`inter-${weight}.woff2`, browserFonts),
+  )));
 
   return { source: useFull ? 'questions.json' : 'questions.sample.json', count: questions.length };
 }

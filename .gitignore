@@ -9,6 +9,9 @@ content/questions.draft.json
 .superpowers/
 .DS_Store
 game/assets/
+game/public/fonts/
+# Local visual study; the selected Arcade design is implemented in game/public and game/views.js.
+game/prototype/
 admin/assets/
 test-results/
 playwright-report/

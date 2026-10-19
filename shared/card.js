@@ -3,7 +3,7 @@ import { Resvg, initWasm } from '@resvg/resvg-wasm';
 import { readFile } from 'node:fs/promises';
 import { rankForTier } from './ranks.js';
 
-const COLORS = { bg: '#161E2D', panel: '#232F3E', accent: '#FF9900', text: '#FFFFFF', muted: '#AAB7B8', good: '#1D8102', bad: '#D13212' };
+const COLORS = { bg: '#101827', panel: '#1A2638', accent: '#FFAD33', gold: '#FFDB92', text: '#F4F6FC', muted: '#ACB8CE', good: '#79DBA0', bad: '#FF897D' };
 
 // Write-once init promise: the WASM module and fonts load once per execution environment.
 let ready;
@@ -31,12 +31,13 @@ const h = (type, style, children) => ({ type, props: { style, children } });
 const missRow = (miss) => {
   const { name, real, timedOut } = typeof miss === 'string' ? { name: miss } : miss;
   const pill = real === undefined
-    ? { text: '\u00d7', bg: COLORS.bad, width: 40 }
-    : real ? { text: 'REAL', bg: COLORS.good, width: 92 } : { text: 'FAKE', bg: COLORS.bad, width: 92 };
+    ? { text: '\u00d7', color: COLORS.bad, bg: '#382C3B', width: 40 }
+    : real ? { text: 'REAL', color: COLORS.good, bg: '#1D3436', width: 92 } : { text: 'FAKE', color: COLORS.bad, bg: '#382C3B', width: 92 };
   return h('div', { display: 'flex', alignItems: 'center', marginTop: 12 }, [
     h('div', {
       display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      width: pill.width, height: 40, borderRadius: 10, marginRight: 20, backgroundColor: pill.bg,
+      width: pill.width, height: 40, borderRadius: 8, marginRight: 20, backgroundColor: pill.bg,
+      color: pill.color, border: `1px solid ${pill.color}`,
       fontSize: real === undefined ? 30 : 20, fontWeight: 700, letterSpacing: real === undefined ? 0 : 2,
     }, pill.text),
     h('div', { fontSize: 32, fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: timedOut ? 800 : 960 }, name),
@@ -64,17 +65,20 @@ export async function renderCard(result, { assetDir, siteHost, cta = true }) {
   // then the optional CTA band. With the band, the bottom padding shrinks to leave air above it.
   const tree = h('div', {
     width: 1200, height: 630, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-    padding: cta ? '56px 64px 40px' : 64, boxSizing: 'border-box', backgroundColor: COLORS.bg, color: COLORS.text, fontFamily: 'Inter',
+    padding: cta ? '56px 64px 40px' : 64, boxSizing: 'border-box', backgroundColor: COLORS.bg,
+    backgroundImage: `linear-gradient(135deg, #243148, ${COLORS.bg})`, color: COLORS.text, fontFamily: 'Inter',
   }, [
     h('div', { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, [
-      // Same wordmark as the site header: "AWS or" in white, "Not?" in orange.
+      // Same wordmark as the site header.
       h('div', { display: 'flex', fontSize: 48, fontWeight: 700 }, [
-        h('div', { color: COLORS.text, marginRight: 13 }, 'AWS or'),
-        h('div', { color: COLORS.accent }, 'Not?'),
+        h('div', { color: COLORS.text, marginRight: 13 }, 'AWS'),
+        h('div', { color: COLORS.muted, marginRight: 13 }, 'or'),
+        h('div', { color: COLORS.text }, 'Not'),
+        h('div', { color: COLORS.accent }, '?'),
       ]),
       h('div', { display: 'flex', alignItems: 'center' }, [
         h('div', { fontSize: 26, color: COLORS.muted, marginRight: 24 }, result.handle),
-        h('div', { fontSize: 26, fontWeight: 700, padding: '8px 22px', borderRadius: 999, border: `3px solid ${COLORS.accent}`, color: COLORS.accent },
+        h('div', { fontSize: 24, fontWeight: 700, padding: '8px 20px', borderRadius: 8, border: `1px solid ${COLORS.accent}`, color: COLORS.gold },
           result.mode === 'hard' ? 'HARD MODE' : 'NORMAL MODE'),
       ]),
     ]),
@@ -84,7 +88,7 @@ export async function renderCard(result, { assetDir, siteHost, cta = true }) {
         h('div', { fontSize: cta ? 124 : 170, fontWeight: 700, lineHeight: 1 }, String(result.score)),
         h('div', { display: 'flex', flexDirection: 'column', marginLeft: 32, marginBottom: cta ? 8 : 14 }, [
           h('div', { fontSize: 26, color: COLORS.muted }, 'correct · reached'),
-          h('div', { fontSize: 38, fontWeight: 700, color: COLORS.accent, whiteSpace: 'nowrap' }, rank),
+          h('div', { fontSize: 38, fontWeight: 700, color: COLORS.gold, whiteSpace: 'nowrap' }, rank),
         ]),
       ]),
       h('div', { display: 'flex', flexDirection: 'column', marginTop: cta ? 20 : 36 }, [misses]),

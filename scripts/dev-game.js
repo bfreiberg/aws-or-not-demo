@@ -7,6 +7,7 @@ process.env.AWS_REGION ??= 'us-east-1';
 process.env.AWS_ACCESS_KEY_ID ??= 'local';
 process.env.AWS_SECRET_ACCESS_KEY ??= 'local';
 process.env.TABLE_NAME ??= 'aws-or-not';
+process.env.AWS_LAMBDA_HTTP_ENDPOINT ??= '127.0.0.1:3000';
 
 const { tableDefinition } = await import('../shared/db/schema.js');
 const { createDocClient } = await import('../shared/db/client.js');
